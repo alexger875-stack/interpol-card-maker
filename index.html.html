@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерпол - Генератор карточки розыска</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #b21f1f;
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #fdbb2d;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            color: #fdbb2d;
+            margin-bottom: 15px;
+        }
+        
+        .form-section, .photo-section, .result-section {
+            display: none;
+            margin-bottom: 30px;
+        }
+        
+        .active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        
+        button {
+            background-color: #b21f1f;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #fdbb2d;
+            color: #1a2a6c;
+        }
+        
+        .camera-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 20px;
+            border: 3px solid #b21f1f;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        #video {
+            width: 100%;
+            display: block;
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .photo-preview {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 20px;
+            border: 3px solid #b21f1f;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #000;
+            display: none;
+        }
+        
+        #uploadedPhoto {
+            width: 100%;
+            display: block;
+        }
+        
+        .photo-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .wanted-card {
+            background-color: white;
+            color: black;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .card-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #b21f1f;
+            padding-bottom: 15px;
+        }
+        
+        .card-header h2 {
+            color: #1a2a6c;
+            font-size: 1.5rem;
+        }
+        
+        .card-header h3 {
+            color: #b21f1f;
+            font-size: 1.2rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th, td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            color: #1a2a6c;
+        }
+        
+        .photo-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .photo-container img {
+            max-width: 200px;
+            border: 2px solid #b21f1f;
+            border-radius: 5px;
+            filter: grayscale(100%); /* Черно-белый фильтр */
+        }
+        
+        .charges {
+            background-color: #ffebee;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 5px solid #b21f1f;
+            margin-top: 20px;
+        }
+        
+        .charges h4 {
+            color: #b21f1f;
+            margin-bottom: 10px;
+        }
+        
+        .crime-list {
+            list-style-type: none;
+        }
+        
+        .crime-list li {
+            padding: 5px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 5px;
+            background-color: #fdbb2d;
+            width: 0%;
+            transition: width 0.5s;
+            margin-top: 10px;
+        }
+        
+        .camera-permission {
+            background-color: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .permission-box {
+            background-color: white;
+            color: black;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        .permission-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="notification" id="notification">
+        Карточка успешно скачана!
+    </div>
+    
+    <div class="camera-permission" id="cameraPermission">
+        <div class="permission-box">
+            <h3>Разрешить доступ к камере?</h3>
+            <p>Для создания карточки розыска необходимо сделать фотографию. Разрешите доступ к вашей камере.</p>
+            <div class="permission-buttons">
+                <button id="allowCamera">Разрешить</button>
+                <button id="denyCamera">Отказать</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <header>
+            <h1>CONNECTING POLICE FOR A SAFER WORLD</h1>
+            <h2>INTERPOL</h2>
+            <h3>Генератор карточки розыска</h3>
+        </header>
+        
+        <!-- Форма ввода данных -->
+        <section id="formSection" class="form-section active">
+            <h3>Введите ваши данные</h3>
+            <form id="userForm">
+                <div class="form-group">
+                    <label for="firstName">Имя:</label>
+                    <input type="text" id="firstName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName">Фамилия:</label>
+                    <input type="text" id="lastName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="gender">Пол:</label>
+                    <select id="gender" required>
+                        <option value="">Выберите пол</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="birthDate">Дата рождения:</label>
+                    <input type="date" id="birthDate" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="birthPlace">Место рождения:</label>
+                    <input type="text" id="birthPlace" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="country">Страна:</label>
+                    <select id="country" required>
+                        <option value="">Выберите страну</option>
+                        <option value="Russia">Russia</option>
+                        <option value="USA">USA</option>
+                        <option value="Germany">Germany</option>
+                        <option value="France">France</option>
+                        <option value="UK">United Kingdom</option>
+                        <option value="China">China</option>
+                        <option value="Japan">Japan</option>
+                        <option value="Italy">Italy</option>
+                        <option value="Spain">Spain</option>
+                        <option value="Brazil">Brazil</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Mexico">Mexico</option>
+                        <option value="India">India</option>
+                        <option value="South Korea">South Korea</option>
+                        <option value="Netherlands">Netherlands</option>
+                        <option value="Switzerland">Switzerland</option>
+                        <option value="Sweden">Sweden</option>
+                        <option value="Norway">Norway</option>
+                        <option value="Finland">Finland</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="height">Рост (в метрах):</label>
+                    <input type="number" id="height" step="0.01" min="1.0" max="2.5" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="hairColor">Цвет волос:</label>
+                    <input type="text" id="hairColor" required>
+                </div>
+                
+                <button type="submit">Подтвердить</button>
+            </form>
+        </section>
+        
+        <!-- Секция выбора фото -->
+        <section id="photoSection" class="photo-section">
+            <h3>Выберите способ добавления фото</h3>
+            
+            <div class="photo-options">
+                <button id="useCameraBtn">Сделать фото с камеры</button>
+                <button id="uploadPhotoBtn">Загрузить фото из галереи</button>
+                <button id="pastePhotoBtn">Вставить фото</button>
+            </div>
+            
+            <div class="camera-container" id="cameraContainer">
+                <video id="video" autoplay></video>
+                <canvas id="canvas"></canvas>
+            </div>
+            
+            <div class="photo-preview" id="photoPreview">
+                <img id="uploadedPhoto" src="" alt="Загруженное фото">
+            </div>
+            
+            <div class="action-buttons">
+                <button id="captureBtn" class="hidden">Сделать фото</button>
+                <button id="usePhotoBtn" class="hidden">Использовать это фото</button>
+                <button id="backToOptionsBtn" class="hidden">Вернуться к выбору</button>
+            </div>
+            
+            <input type="file" id="fileInput" accept="image/*" class="hidden">
+        </section>
+        
+        <!-- Результат - карточка розыска -->
+        <section id="resultSection" class="result-section">
+            <div class="wanted-card" id="wantedCard">
+                <div class="card-header">
+                    <h2>CONNECTING POLICE FOR A SAFER WORLD</h2>
+                    <h3>INTERPOL</h3>
+                    <p>HOME | ABOUT INTERPOL | NEWS AND MEDIA | MEMBER COUNTRIES | INTERPOL EXPERTISE | CRIME AREAS</p>
+                </div>
+                
+                <p><strong>Back to Search result</strong></p>
+                
+                <h3 id="resultName">ZEMLYANKA, ANATOLY</h3>
+                <p id="wantedReason">WANTED BY THE JUDICIAL AUTHORITIES OF RUSSIA FOR PROSECUTION / TO SERVE A SENTENCE</p>
+                
+                <h4>IDENTITY PARTICULARS</h4>
+                <table>
+                    <tr>
+                        <th>Prospect family name</th>
+                        <td id="resultLastName">ZEMLYANKA</td>
+                    </tr>
+                    <tr>
+                        <th>Forename</th>
+                        <td id="resultFirstName">ANATOLY</td>
+                    </tr>
+                    <tr>
+                        <th>Sex</th>
+                        <td id="resultGender">Male</td>
+                    </tr>
+                    <tr>
+                        <th>Date of birth</th>
+                        <td id="resultBirthDate">26/01/1987 (28 years old)</td>
+                    </tr>
+                    <tr>
+                        <th>Place of birth</th>
+                        <td id="resultBirthPlace">NOYABREN TOWN OF TYUMEN REGION, Russia</td>
+                    </tr>
+                    <tr>
+                        <th>Language spoken</th>
+                        <td id="resultLanguage">Russian</td>
+                    </tr>
+                    <tr>
+                        <th>Nationality</th>
+                        <td id="resultNationality">Russia</td>
+                    </tr>
+                </table>
+                
+                <h4>PHYSICAL DESCRIPTION</h4>
+                <table>
+                    <tr>
+                        <th>Height</th>
+                        <td id="resultHeight">1.78 meter</td>
+                    </tr>
+                    <tr>
+                        <th>Colour of hair</th>
+                        <td id="resultHairColor">Brown</td>
+                    </tr>
+                </table>
+                
+                <h4>CHARGES</h4>
+                <p>Published as provided by requesting entity.</p>
+                <div class="charges">
+                    <h4>Charges: <span id="resultCharges">Participation in an illegal armed formation</span></h4>
+                </div>
+                
+                <h4>PHOTOS</h4>
+                <div class="photo-container">
+                    <img id="resultPhoto" src="" alt="Photo">
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="downloadBtn">Скачать карточку</button>
+                <button id="restartBtn">Создать новую карточку</button>
+            </div>
+        </section>
+        
+        <div class="footer">
+            <p>Это демонстрационная страница. Все данные используются только в развлекательных целях.</p>
+        </div>
+    </div>
+
+    <!-- Подключаем библиотеку html2canvas для создания скриншота карточки -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <script>
+        // Элементы DOM
+        const formSection = document.getElementById('formSection');
+        const photoSection = document.getElementById('photoSection');
+        const resultSection = document.getElementById('resultSection');
+        const userForm = document.getElementById('userForm');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureBtn = document.getElementById('captureBtn');
+        const usePhotoBtn = document.getElementById('usePhotoBtn');
+        const backToOptionsBtn = document.getElementById('backToOptionsBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const wantedCard = document.getElementById('wantedCard');
+        const notification = document.getElementById('notification');
+        const cameraPermission = document.getElementById('cameraPermission');
+        const allowCamera = document.getElementById('allowCamera');
+        const denyCamera = document.getElementById('denyCamera');
+        const useCameraBtn = document.getElementById('useCameraBtn');
+        const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
+        const pastePhotoBtn = document.getElementById('pastePhotoBtn');
+        const fileInput = document.getElementById('fileInput');
+        const cameraContainer = document.getElementById('cameraContainer');
+        const photoPreview = document.getElementById('photoPreview');
+        const uploadedPhoto = document.getElementById('uploadedPhoto');
+        
+        // Элементы для отображения результата
+        const resultName = document.getElementById('resultName');
+        const resultFirstName = document.getElementById('resultFirstName');
+        const resultLastName = document.getElementById('resultLastName');
+        const resultGender = document.getElementById('resultGender');
+        const resultBirthDate = document.getElementById('resultBirthDate');
+        const resultBirthPlace = document.getElementById('resultBirthPlace');
+        const resultHeight = document.getElementById('resultHeight');
+        const resultHairColor = document.getElementById('resultHairColor');
+        const resultCharges = document.getElementById('resultCharges');
+        const resultPhoto = document.getElementById('resultPhoto');
+        const resultNationality = document.getElementById('resultNationality');
+        
+        // Список возможных преступлений (включая все указанные)
+        const crimes = [
+            "Set up an illegal casino",
+            "White collar crime",
+            "Attack a foreign embassy",
+            "Ponzi schemes",
+            "Smuggle exotic animals",
+            "Kidnap a celebrity",
+            "Terrorism",
+            "Human Trafficking",
+            "Bribery",
+            "Tax fraud",
+            "Run an underground gambling operation",
+            "Set fire to a building",
+            "Medical billing fraud",
+            "Kidnapping for ransom",
+            "Create fake identities",
+            "Hijack a courier delivering valuable items",
+            "Intellectual property theft",
+            "Weapons trafficking",
+            "Insurance fraud",
+            "Identity theft",
+            "Hack into a company’s database",
+            "Money Laundering",
+            "Hack into a government agency",
+            "Embezzlement",
+            "Arson",
+            "Credit card fraud",
+            "Organized Crime",
+            "False advertising",
+            "Perjury",
+            "Steal classified information",
+            "Bribe a judge",
+            "Rob a train carrying valuables",
+            "Obtain fake passports",
+            "Hijack a commercial airplane",
+            "Environmental crime"
+        ];
+        
+        // Текущий способ добавления фото
+        let currentPhotoMethod = null;
+        
+        // Обработчик отправки формы
+        userForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Переход к секции выбора фото
+            formSection.classList.remove('active');
+            photoSection.classList.add('active');
+        });
+        
+        // Использование камеры
+        useCameraBtn.addEventListener('click', function() {
+            currentPhotoMethod = 'camera';
+            cameraContainer.style.display = 'block';
+            photoPreview.style.display = 'none';
+            captureBtn.classList.remove('hidden');
+            usePhotoBtn.classList.add('hidden');
+            backToOptionsBtn.classList.remove('hidden');
+            
+            // Показать запрос на разрешение использования камеры
+            cameraPermission.style.display = 'flex';
+        });
+        
+        // Загрузка фото из галереи
+        uploadPhotoBtn.addEventListener('click', function() {
+            currentPhotoMethod = 'upload';
+            fileInput.click();
+        });
+        
+        // Обработчик выбора файла
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    uploadedPhoto.src = event.target.result;
+                    cameraContainer.style.display = 'none';
+                    photoPreview.style.display = 'block';
+                    captureBtn.classList.add('hidden');
+                    usePhotoBtn.classList.remove('hidden');
+                    backToOptionsBtn.classList.remove('hidden');
+                    
+                    // Преобразование в черно-белое
+                    convertToGrayscale(uploadedPhoto);
+                }
+                
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+        
+        // Вставка фото
+        pastePhotoBtn.addEventListener('click', function() {
+            currentPhotoMethod = 'paste';
+            alert("Скопируйте изображение в буфер обмена (Ctrl+C), затем нажмите Ctrl+V на этой странице, чтобы вставить его.");
+            
+            // Добавляем обработчик события вставки
+            document.addEventListener('paste', handlePaste);
+        });
+        
+        // Обработчик вставки изображения
+        function handlePaste(e) {
+            const items = e.clipboardData.items;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(event) {
+                        uploadedPhoto.src = event.target.result;
+                        cameraContainer.style.display = 'none';
+                        photoPreview.style.display = 'block';
+                        captureBtn.classList.add('hidden');
+                        usePhotoBtn.classList.remove('hidden');
+                        backToOptionsBtn.classList.remove('hidden');
+                        
+                        // Преобразование в черно-белое
+                        convertToGrayscale(uploadedPhoto);
+                    }
+                    
+                    reader.readAsDataURL(blob);
+                    break;
+                }
+            }
+            
+            // Удаляем обработчик после использования
+            document.removeEventListener('paste', handlePaste);
+        }
+        
+        // Преобразование изображения в черно-белое
+        function convertToGrayscale(imgElement) {
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCanvas.width = imgElement.width;
+            tempCanvas.height = imgElement.height;
+            
+            tempCtx.drawImage(imgElement, 0, 0);
+            
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const data = imageData.data;
+            
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = avg;     // red
+                data[i + 1] = avg; // green
+                data[i + 2] = avg; // blue
+            }
+            
+            tempCtx.putImageData(imageData, 0, 0);
+            imgElement.src = tempCanvas.toDataURL('image/png');
+        }
+        
+        // Вернуться к выбору способа добавления фото
+        backToOptionsBtn.addEventListener('click', function() {
+            cameraContainer.style.display = 'none';
+            photoPreview.style.display = 'none';
+            captureBtn.classList.add('hidden');
+            usePhotoBtn.classList.add('hidden');
+            backToOptionsBtn.classList.add('hidden');
+            
+            // Остановить камеру, если она активна
+            if (video.srcObject) {
+                const stream = video.srcObject;
+                const tracks = stream.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        });
+        
+        // Использовать выбранное фото
+        usePhotoBtn.addEventListener('click', function() {
+            // Переход к результату
+            photoSection.classList.remove('active');
+            resultSection.classList.add('active');
+            
+            // Заполнение данных в карточке
+            fillWantedCard();
+        });
+        
+        // Разрешить использование камеры
+        allowCamera.addEventListener('click', function() {
+            cameraPermission.style.display = 'none';
+            startCamera();
+        });
+        
+        // Отказать в использовании камеры
+        denyCamera.addEventListener('click', function() {
+            cameraPermission.style.display = 'none';
+            alert("Для создания карточки розыска необходимо сделать фотографию. Без доступа к камере функция недоступна.");
+            backToOptionsBtn.click();
+        });
+        
+        // Запуск камеры
+        function startCamera() {
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(function(stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function(err) {
+                    console.error("Ошибка доступа к камере: ", err);
+                    alert("Не удалось получить доступ к камере. Пожалуйста, разрешите использование камеры и обновите страницу.");
+                });
+        }
+        
+        // Сделать фото
+        captureBtn.addEventListener('click', function() {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Преобразование в черно-белое
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = avg;     // red
+                data[i + 1] = avg; // green
+                data[i + 2] = avg; // blue
+            }
+            context.putImageData(imageData, 0, 0);
+            
+            // Показать превью фото
+            uploadedPhoto.src = canvas.toDataURL('image/png');
+            cameraContainer.style.display = 'none';
+            photoPreview.style.display = 'block';
+            captureBtn.classList.add('hidden');
+            usePhotoBtn.classList.remove('hidden');
+            
+            // Остановить поток камеры
+            const stream = video.srcObject;
+            const tracks = stream.getTracks();
+            tracks.forEach(track => track.stop());
+        });
+        
+        // Заполнение карточки розыска
+        function fillWantedCard() {
+            // Получение данных из формы
+            const firstName = document.getElementById('firstName').value.toUpperCase();
+            const lastName = document.getElementById('lastName').value.toUpperCase();
+            const gender = document.getElementById('gender').value;
+            const birthDate = new Date(document.getElementById('birthDate').value);
+            const birthPlace = document.getElementById('birthPlace').value.toUpperCase();
+            const country = document.getElementById('country').value;
+            const height = document.getElementById('height').value;
+            const hairColor = document.getElementById('hairColor').value;
+            
+            // Расчет возраста
+            const today = new Date();
+            const age = today.getFullYear() - birthDate.getFullYear();
+            
+            // Заполнение данных
+            resultName.textContent = `${lastName}, ${firstName}`;
+            resultFirstName.textContent = firstName;
+            resultLastName.textContent = lastName;
+            resultGender.textContent = gender;
+            resultBirthDate.textContent = `${formatDate(birthDate)} (${age} years old)`;
+            resultBirthPlace.textContent = `${birthPlace}, ${country}`;
+            resultHeight.textContent = `${height} meter`;
+            resultHairColor.textContent = hairColor;
+            resultNationality.textContent = country;
+            
+            // Случайное преступление
+            const randomCrime = crimes[Math.floor(Math.random() * crimes.length)];
+            resultCharges.textContent = randomCrime;
+            
+            // Добавление фото
+            if (currentPhotoMethod === 'camera' || currentPhotoMethod === 'upload' || currentPhotoMethod === 'paste') {
+                resultPhoto.src = uploadedPhoto.src;
+            }
+        }
+        
+        // Форматирование даты
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+        
+        // Скачивание карточки
+        downloadBtn.addEventListener('click', function() {
+            // Показать уведомление о скачивании
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+            
+            html2canvas(wantedCard).then(function(canvas) {
+                // Создание ссылки для скачивания
+                const link = document.createElement('a');
+                link.download = 'interpol-wanted-card.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+        
+        // Кнопка перезапуска
+        restartBtn.addEventListener('click', function() {
+            resultSection.classList.remove('active');
+            formSection.classList.add('active');
+            userForm.reset();
+            
+            // Сброс состояния фото
+            cameraContainer.style.display = 'none';
+            photoPreview.style.display = 'none';
+            captureBtn.classList.add('hidden');
+            usePhotoBtn.classList.add('hidden');
+            backToOptionsBtn.classList.add('hidden');
+            currentPhotoMethod = null;
+        });
+    </script>
+</body>
+</html>
